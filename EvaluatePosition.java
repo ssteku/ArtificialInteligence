@@ -91,7 +91,7 @@ public class EvaluatePosition // Ta klasa jest wymagana - nie usuwaj jej
             {
                 if (!board._board[i][j].empty) // pole nie jest puste
                 {
-                    if (board._board[i][j].white=getColor()) // to jest moj pionek
+                    if (board._board[i][j].white==getColor()) // to jest moj pionek
                     {
                         if(board._board[i][j].king)
                         {
@@ -150,30 +150,15 @@ public class EvaluatePosition // Ta klasa jest wymagana - nie usuwaj jej
             }
         }
         return (int)minDistance;
-    }
-    private static int getMinDistanceToEnemyPiece(AIBoard board, int i, int j)
-    {
-        List<Integer[]> enemiesPositions = getEnemiesPositions(board);
-        Integer firstPos[] = enemiesPositions.get(0);
-        double minDistance = Math.sqrt((i-firstPos[0])*(i-firstPos[0])+(j-firstPos[1])*(j-firstPos[1]));
-        for(Integer[] pos: enemiesPositions)
-        {
-            double tmpResult = Math.sqrt((i-pos[0])*(i-pos[0])+(j-pos[1])*(j-pos[1]));
-            if(minDistance <tmpResult && board._board[pos[0]][pos[1]].king == false)
-            {
-                minDistance = tmpResult;
-            }
-        }
-        return (int)minDistance;
-    }
+    }    
 
     private static int getResult(final int myRating,final int enemyRating)
     {
-        if (myRating==0)
+        if (myRating<=0)
         {
             return LOSE;
         }
-        else if (enemyRating==0)
+        else if (enemyRating<=0)
         {
             return WIN;
         }
@@ -201,7 +186,7 @@ public class EvaluatePosition // Ta klasa jest wymagana - nie usuwaj jej
         List<Integer> stats = getStats(board);
         if(stats.get(0) == 0 && stats.get(2) == 0)
         {
-            Judge.updateLog("Kings only\n");
+            // Judge.updateLog("Kings only\n");
             return true;
         }
         else
@@ -246,138 +231,57 @@ public class EvaluatePosition // Ta klasa jest wymagana - nie usuwaj jej
             {
                 rating = (5+(size_-1)-i)*getWeight(i,j);
             }
-        }
-        if(board._board[i][j].white = getColor())
+        }   
+        if(onlyKingsLeft(board))
         {
-            if(willBeLost(board,i,j, isWhite))
+            int minDistance = getMinDistanceToEnemies(board, i, j);
+            // Judge.updateLog("Distance sum"+Integer.toString(minDistance)+"\n");
+            if(isPlayerWinning(board))
             {
-                rating = rating*(-10);
-            }
-
-            if(isPlayerWinning(board) && board._board[i][j].king)
-            {
-                int minDistance = getMinDistanceToEnemies(board, i, j);
                 rating += (diagonalSize_-minDistance);
             }
-            if(onlyKingsLeft(board))
+            else
             {
-                int minDistance = getMinDistanceToEnemies(board, i, j);
-                Judge.updateLog("Distance sum"+Integer.toString(minDistance)+"\n");
-                if(isPlayerWinning(board))
-                {
-                    rating += (diagonalSize_-minDistance);
-                }
-                else
-                {
-                    rating -= (diagonalSize_-minDistance);
-                }
-
+                rating -= (diagonalSize_-minDistance);
             }
         }
-
-
-
-
-
         return rating;
-    }
-
-
-    private static boolean willBeLost(AIBoard board, int i, int j, boolean isWhite)
-    {
-        List<Integer[]> positions = getSurroundingPositions(i, j);
-        for(Integer[] pos:positions)
-        {
-            if(!board._board[pos[0]][pos[1]].empty)
-            {
-                if(board._board[pos[0]][pos[1]].white != getColor())
-                {
-                    if(board._board[pos[0]][pos[1]].king)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        if(isWhite)
-                        {
-                            if(pos[0] > i)
-                            {
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            if(pos[0] < i)
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
+    }   
 
     private static List<Integer[]> getSurroundingPositions(int i, int j)
     {
         List<Integer[]> positions = new ArrayList<Integer[]>();
-        if(i!=0)
+        
+        if(i>0 && j >0)
         {
-            if(j!=0)
-            {
-                Integer myPos[] = new Integer[2];
-                myPos[0] = i-1;
-                myPos[1] = j-1;
-                positions.add(myPos);
-                if(i<size_)
-                {
-                    Integer myPos2[] = new Integer[2];
-                    myPos[0] = i+1;
-                    myPos[1] = j-1;
-                    positions.add(myPos2);
-                }
-
-            }
-            if(j < size_)
-            {
-                Integer myPos[] = new Integer[2];
-                myPos[0] = i-1;
-                myPos[1] = j+1;
-                positions.add(myPos);
-                if(i<size_)
-                {
-                    Integer myPos2[] = new Integer[2];
-                    myPos[0] = i+1;
-                    myPos[1] = j+1;
-                    positions.add(myPos2);
-                }
-            }
+            Integer myPos[] = new Integer[2];
+            myPos[0] = i-1;
+            myPos[1] = j-1;
+            positions.add(myPos);  
         }
-        else
+
+        if(i< size_-1 && j >0)
         {
-            if(j!=0)
-            {
-                if(i<size_)
-                {
-                    Integer myPos[] = new Integer[2];
-                    myPos[0] = i+1;
-                    myPos[1] = j-1;
-                    positions.add(myPos);
-                }
-
-            }
-            if(j < size_)
-            {
-                if(i<size_)
-                {
-                    Integer myPos[] = new Integer[2];
-                    myPos[0] = i+1;
-                    myPos[1] = j+1;
-                    positions.add(myPos);
-                }
-            }
+            Integer myPos[] = new Integer[2];
+            myPos[0] = i+1;
+            myPos[1] = j-1;
+            positions.add(myPos);  
         }
+
+        if(i>0 && j <size_-1)
+        {
+            Integer myPos[] = new Integer[2];
+            myPos[0] = i-1;
+            myPos[1] = j+1;
+            positions.add(myPos);  
+        }
+        if(i<size_-1 && j <size_-1)
+        {
+            Integer myPos[] = new Integer[2];
+            myPos[0] = i+1;
+            myPos[1] = j+1;
+            positions.add(myPos);  
+        } 
         return positions;
     }
 
